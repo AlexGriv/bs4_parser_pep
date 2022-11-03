@@ -2,9 +2,8 @@ import logging
 
 from requests import RequestException
 
-from exceptions import ParserFindTagException
-
 from constants import ENCODING
+from exceptions import ParserFindTagException
 
 
 def get_response(session, url):
