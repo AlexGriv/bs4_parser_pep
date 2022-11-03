@@ -7,20 +7,16 @@ from prettytable import PrettyTable
 from constants import BASE_DIR, DATETIME_FORMAT, ENCODING
 
 
-def control_output(results, cli_args):
-    output = 'default'
-    if cli_args.output:
-        output = cli_args.output
-
-    OUTPUT_METHODS[output](results, cli_args)
+def control_output(results, cli_args=None):
+    OUTPUT.get(cli_args.output, default_output)(results, cli_args)
 
 
-def default_output(results):
+def default_output(results, cli_args=None):
     for row in results:
         print(*row)
 
 
-def pretty_output(results):
+def pretty_output(results, cli_args=None):
     table = PrettyTable()
     table.field_names = results[0]
     table.align = 'l'
@@ -28,7 +24,7 @@ def pretty_output(results):
     print(table)
 
 
-def file_output(results, cli_args):
+def file_output(results, cli_args=None):
     results_dir = BASE_DIR / 'results'
     results_dir.mkdir(exist_ok=True)
     parser_mode = cli_args.mode
@@ -42,8 +38,7 @@ def file_output(results, cli_args):
     logging.info(f'Файл с результатами был сохранён: {file_path}')
 
 
-OUTPUT_METHODS = {
+OUTPUT = {
     'pretty': pretty_output,
     'file': file_output,
-    'default': default_output
 }
