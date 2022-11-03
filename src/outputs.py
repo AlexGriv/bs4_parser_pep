@@ -14,6 +14,7 @@ def control_output(results, cli_args):
 
     OUTPUT_METHODS[output](results, cli_args)
 
+
 def default_output(results):
     for row in results:
         print(*row)
@@ -39,6 +40,7 @@ def file_output(results, cli_args):
         writer = csv.writer(f, dialect='unix')
         writer.writerows(results)
     logging.info(f'Файл с результатами был сохранён: {file_path}')
+
 
 OUTPUT_METHODS = {
     'pretty': pretty_output,
