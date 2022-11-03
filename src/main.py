@@ -8,17 +8,20 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 from configs import configure_argument_parser, configure_logging
-from constants import BASE_DIR, EXPECTED_STATUS, MAIN_DOC_URL, PEP_URL
+from constants import (BASE_DIR,
+                      EXPECTED_STATUS,
+                      MAIN_DOC_URL,
+                      PEP_URL,
+                      WHATS_NEW_URL,
+                      DOWNLOADS_URL,
+)
 from outputs import control_output
 from utils import find_tag, get_response
 
 
 def whats_new(session):
-    whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
     session = requests_cache.CachedSession()
-    response = get_response(session, whats_new_url)
-    if response is None:
-        return
+    response = get_response(session, WHATS_NEW_URL)
     soup = BeautifulSoup(response.text, features='lxml')
     main_div = find_tag(soup, 'section', attrs={'id': 'what-s-new-in-python'})
     div_with_ul = find_tag(main_div, 'div', attrs={'class': 'toctree-wrapper'})
@@ -28,7 +31,7 @@ def whats_new(session):
     for section in tqdm(sections_by_python):
         version_a_tag = section.find('a')
         href = version_a_tag['href']
-        version_link = urljoin(whats_new_url, href)
+        version_link = urljoin(WHATS_NEW_URL, href)
         response = get_response(session, version_link)
         if response is None:
             continue
@@ -44,8 +47,6 @@ def whats_new(session):
 
 def latest_versions(session):
     response = get_response(session, MAIN_DOC_URL)
-    if response is None:
-        return
     soup = BeautifulSoup(response.text, features='lxml')
     sidebar = soup.find('div', {'class': 'sphinxsidebarwrapper'})
     ul_tags = sidebar.find_all('ul')
@@ -72,25 +73,21 @@ def latest_versions(session):
 
 
 def download(session):
-    downloads_url = urljoin(MAIN_DOC_URL, 'download.html')
-    session = requests_cache.CachedSession()
-    response = get_response(session, downloads_url)
-    if response is None:
-        return
+    response = get_response(session, DOWNLOADS_URL)
     soup = BeautifulSoup(response.text, features='lxml')
-    main_tag = soup.find('div', {'role': 'main'})
-    table_tag = main_tag.find('table', {'class': 'docutils'})
-    pdf_a4_tag = table_tag.find('a', {'href': re.compile(r'.+pdf-a4\.zip$')})
+    urls_table = find_tag(soup, 'table', attrs={'class': 'docutils'})
+    pdf_a4_tag = find_tag(
+        urls_table, 'a', {'href': re.compile(r'.+pdf-a4\.zip$')}
+    )
     pdf_a4_link = pdf_a4_tag['href']
-    archive_url = urljoin(downloads_url, pdf_a4_link)
+    archive_url = urljoin(DOWNLOADS_URL, pdf_a4_link)
     filename = archive_url.split('/')[-1]
     downloads_dir = BASE_DIR / 'downloads'
     downloads_dir.mkdir(exist_ok=True)
     archive_path = downloads_dir / filename
-    response = session.get(archive_url)
+    response = session.get(archive_url, verify=False)
     with open(archive_path, 'wb') as file:
         file.write(response.content)
-
     logging.info(f'Архив был загружен и сохранён: {archive_path}')
 
 
@@ -105,12 +102,10 @@ def sub_pep(session, link):
 def pep(session):
     response = get_response(session, PEP_URL)
     soup = BeautifulSoup(response.text, features='lxml')
-
     section = find_tag(soup, 'section', attrs={'id': 'numerical-index'})
     table = find_tag(section, 'table', attrs={'class': 'pep-zero-table'})
     tbody = find_tag(table, 'tbody')
     tr = tbody.find_all('tr')
-
     logs = []
     result = [('Статус', 'Количество')]
     count_pep = defaultdict(int)
@@ -166,6 +161,9 @@ def main():
 
     if results is not None:
         control_output(results, args)
+    else:
+        logging.info(f'Ничего не нашлось')
+        raise Exception('Ничего не нашлось')
     logging.info('Парсер завершил работу.')
 
 

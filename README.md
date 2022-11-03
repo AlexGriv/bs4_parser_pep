@@ -47,3 +47,5 @@ python main.py -с
 python main.py [парсер] -o file
 python main.py [парсер] -o pretty
 
+## Автор
+Гривцов А.С.
