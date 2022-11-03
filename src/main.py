@@ -158,7 +158,7 @@ def main():
         control_output(results, args)
     else:
         logging.info(f'Ничего не нашлось \n')
-        raise Exception('Ничего не нашлось')
+        raise Exception(f'Ничего не нашлось \n')
     logging.info('Парсер завершил работу.')
 
 
