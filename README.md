@@ -48,4 +48,5 @@ python main.py [парсер] -o file
 python main.py [парсер] -o pretty
 
 ## Автор
-Гривцов А.С.
+AlexGriv
+https://github.com/AlexGriv
